@@ -132,17 +132,33 @@ frame (SDL_Renderer* renderer) {
         XY(50,0), XY(100,50), XY(50,100), XY(0,50),
     ]);
 
+    // ◇ -
+    Pic pic_3; 
+    pic_3.els ~= Pic.El( Pic.El.Type.CLOSED_LINE, [
+        XY(50,0), XY(100,25), XY(50,50), XY(0,25),
+    ]);
+
+    // ◇ |
+    Pic pic_4; 
+    pic_4.els ~= Pic.El( Pic.El.Type.CLOSED_LINE, [
+        XY(25,0), XY(50,50), XY(25,100), XY(0,50),
+    ]);
+
     // pictures table
     Pics pics;
     pics ~= pic_0;  // 0: pic_0
     pics ~= pic_1;  // 1: pic_1
     pics ~= pic_2;  // 2: pic_2
+    pics ~= pic_3;  // 3: pic_3
+    pics ~= pic_4;  // 3: pic_4
 
     // 3 picture_ids flow
     IDS ids;
     ids ~= 1;
     ids ~= 1;
     ids ~= 2;
+    ids ~= 3;
+    ids ~= 4;
 
     // G
     PicG g;

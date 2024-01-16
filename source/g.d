@@ -107,8 +107,12 @@ CMAP {
             else
                 dline_by_x_rev (a, b, c);
         }
-        else
-            dline_by_y (a, b, c);
+        else {
+            if (a.y<b.y)
+                dline_by_y (a, b, c);
+            else
+                dline_by_y_rev (a, b, c);
+        }
     }
 
     void
@@ -158,6 +162,24 @@ CMAP {
         writeln (x_inc);
 
         for (; y!=limit; y++) {
+            x += x_inc;
+            m[y*_w + x.to_int] = c;
+        }
+    }
+
+    void
+    dline_by_y_rev (XY a, XY b, C c) {
+        assert (a.y>b.y);
+
+        auto _w = w;
+        auto ba = b-a;
+        auto y  = a.y;
+        auto limit = b.y;
+        auto x_inc = Fixed (ba.x,0) / -ba.y;
+        auto x = Fixed (a.x,0);
+        writeln (x_inc);
+
+        for (; y!=limit; y--) {
             x += x_inc;
             m[y*_w + x.to_int] = c;
         }
