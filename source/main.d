@@ -160,6 +160,19 @@ frame (SDL_Renderer* renderer) {
     ids ~= 3;
     ids ~= 4;
 
+    // Format ids
+    FIDS fids;
+    fids ~= 1;
+    fids ~= 1;
+    fids ~= 1;
+    fids ~= 1;
+    fids ~= 1;
+
+    // Formats
+    Formats formats;
+    formats ~= Format();
+    formats ~= Format();
+
     // G
     PicG g;
 
@@ -185,6 +198,8 @@ frame (SDL_Renderer* renderer) {
     g.m.m = new C[](rect.w*rect.h);
     g.m.w = rect.w;
     g.c   = 0xFFFFFFFF;
+    XY      base;
+    Sizes   sizes;
 
     // RENDER
     SDL_LockSurface (surface);
@@ -194,7 +209,7 @@ frame (SDL_Renderer* renderer) {
         g.m.m[i] = (cast(C*)surface.pixels)[i];
 
     // change pixels
-    g.flow_stacked (pics,ids);
+    g.flow_stacked (pics,ids,base,sizes);
 
     // set pixels    
     for (auto i=0; i<rect.w*rect.h; i++)
