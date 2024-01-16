@@ -106,10 +106,11 @@ PicG {
 
     void
     render_line (ref XY base, ref Pic.El el, out Size size) {
-        XY  a = base + el.xys[0];
+        XY  a = el.xys[0];
         XY _b;
         typeof(Size.x) maxx = a.x;
         typeof(Size.y) maxy = a.y;
+        a += base;
 
         foreach (b; el.xys[1..$]) {
             _b = base + b;
@@ -129,10 +130,11 @@ PicG {
 
     void
     render_closed_line (ref XY base, ref Pic.El el, out Size size) {
-        XY  a = base + el.xys[0];
+        XY  a = el.xys[0];
         XY _b;
         typeof(Size.x) maxx = a.x;
         typeof(Size.y) maxy = a.y;
+        a += base;
 
         foreach (b; el.xys[1..$]) {
             _b = base + b;
