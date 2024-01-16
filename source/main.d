@@ -153,12 +153,17 @@ frame (SDL_Renderer* renderer) {
     pics ~= pic_4;  // 3: pic_4
 
     // 3 picture_ids flow
+    // \2\1Start\0\0
     IDS ids;
     ids ~= 1;
     ids ~= 1;
     ids ~= 2;
     ids ~= 3;
+    ids ~= '\\';  // control
+    ids ~= 2;     // fmt 2
     ids ~= 4;
+    //ids ~= '\\';  // control
+    //ids ~= 0;     // out fmt
 
     // Format ids
     FIDS fids;
@@ -169,9 +174,19 @@ frame (SDL_Renderer* renderer) {
     fids ~= 1;
 
     // Formats
-    Formats formats;
-    formats ~= Format();
-    formats ~= Format();
+    Formats fmts;
+    auto fmt_0 = Format();
+    fmts ~= fmt_0;
+
+    auto fmt_1 = Format();
+    fmts ~= fmt_1;
+
+    auto fmt_2 = Format();
+    fmt_2.attrs[AID.PADDING_TOP]    = 20;
+    fmt_2.attrs[AID.PADDING_RIGHT]  = 20;
+    fmt_2.attrs[AID.PADDING_BOTTOM] = 20;
+    fmt_2.attrs[AID.PADDING_LEFT]   = 20;
+    fmts ~= fmt_2;
 
     // G
     PicG g;
@@ -209,7 +224,8 @@ frame (SDL_Renderer* renderer) {
         g.m.m[i] = (cast(C*)surface.pixels)[i];
 
     // change pixels
-    g.flow_stacked (pics,ids,base,sizes);
+    //g.flow_stacked (pics,ids,base,sizes);
+    g.flow_2_stacked (pics,fmts,ids,base,sizes);
 
     // set pixels    
     for (auto i=0; i<rect.w*rect.h; i++)

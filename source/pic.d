@@ -1,5 +1,7 @@
 module pic;
 
+import std.stdio : writeln;
+
 //import g;
 public import g;
 
@@ -43,19 +45,47 @@ PicG {
     alias g this;
 
     void
-    flow_ (ref Pics pics, ref Formats fmts, ref IDS ids, ref FIDS fids, ref XY base, ref Sizes sizes) {
-        assert (fids.length==pics.length);
+    flow_2_stacked (ref Pics pics, ref Formats fmts, ref IDS ids, ref XY base, ref Sizes sizes) {
+        import std.range;
+
+        Size       size;
+        PicID      preid;
+        FormatID   fid;
+        Format     fmt;
+        FormatID[] fstack;
 
         sizes.length = ids.length;
-        bool _control = false;
 
         foreach (i,id; ids) {
-            auto pic = pics[id];
-            auto fid = fids[i];
-            auto fmt = fmts[fid];  //
-            Size size;
-            render (pic, base, size);
-            sizes[i] = size;
+            if (id=='\\') {     // control
+                preid = id;
+                continue;
+            } 
+
+            if (preid=='\\') {  // control
+                fid = id;
+
+                if (fid != 0) {    // in   : base += padding
+                    fstack ~= fid;
+                }
+                else {             // out
+                    fid = fstack.back ();  
+                    fstack.popBack ();  
+                }
+
+                fmt = fmts[fid];
+            }
+            else {              // ID
+                auto pic = pics[id];
+
+                render_fmt (pic, base, fmt, size);
+
+                base.x  += size.x;
+                sizes[i] = size;
+            }
+
+            //
+            preid = id;
         }
     }
 
@@ -92,7 +122,7 @@ PicG {
             switch (el.type) {
                 case Pic.El.Type.POINTS      : render_points (pic, base, el, el_size); break;
                 case Pic.El.Type.LINE        : render_line (base, el, el_size); break;
-                case Pic.El.Type.CLOSED_LINE : render_closed_line (base, el, el_size); break;
+                case Pic.El.Type.CLOSED_LINE : render_closed_line (base, el, c, el_size); break;
                 default:
             }
 
@@ -102,6 +132,44 @@ PicG {
             if (el_size.y > size.y)
                 size.y = el_size.y;
         }
+    }
+
+    void
+    render_fmt (ref Pic pic, ref XY base, ref Format fmt, out Size size) {
+        Size el_size;
+        auto pt = fmt.attrs[AID.PADDING_TOP];
+        auto pr = fmt.attrs[AID.PADDING_RIGHT];
+        auto pb = fmt.attrs[AID.PADDING_BOTTOM];
+        auto pl = fmt.attrs[AID.PADDING_LEFT];
+
+        auto pbase = 
+            base + 
+            XY (cast(short)pl,cast(short)pt);
+
+        render (pic, pbase, size);
+
+        auto psize = 
+            size + 
+            XY (cast(short)pl,cast(short)pt) + 
+            XY (cast(short)pr,cast(short)pb);
+        render_borders (base,psize,0xFFFF00FF);
+        render_content_borders (pbase,size,0xFF00FFFF);
+    }
+
+    void
+    render_borders (XY base, Size size, C c) {
+        auto el = Pic.El (Pic.El.Type.CLOSED_LINE, [
+            XY(), XY(size.x,0), size, XY(0,size.y) ]);
+        Size el_size;
+        render_closed_line (base, el, c, el_size);
+    }
+
+    void
+    render_content_borders (XY base, Size size, C c) {
+        auto el = Pic.El (Pic.El.Type.CLOSED_LINE, [
+            XY(), XY(size.x,0), size, XY(0,size.y) ]);
+        Size el_size;
+        render_closed_line (base, el, c, el_size);
     }
 
     void
@@ -133,7 +201,7 @@ PicG {
 
         foreach (b; el.xys[1..$]) {
             _b = base + b;
-            line (a,_b);
+            line (a,_b,c);
             a = _b;
 
             if (b.x > maxx)
@@ -148,7 +216,7 @@ PicG {
     }
 
     void
-    render_closed_line (ref XY base, ref Pic.El el, out Size size) {
+    render_closed_line (ref XY base, ref Pic.El el, C c, out Size size) {
         XY  a = el.xys[0];
         XY _b;
         typeof(Size.x) maxx = a.x;
@@ -157,7 +225,7 @@ PicG {
 
         foreach (b; el.xys[1..$]) {
             _b = base + b;
-            line (a,_b);
+            line (a,_b,c);
             a = _b;
 
             if (b.x > maxx)
@@ -167,7 +235,7 @@ PicG {
                 maxy = b.y;
         }
 
-        line (a, base + el.xys[0]);
+        line (a, base + el.xys[0], c);
 
         size.x = maxx;
         size.y = maxy;
@@ -191,7 +259,7 @@ Format {
     // fg
     // bg
     // border
-    Attr[AID] attrs;  // 255*4 = 1024 Bytes
+    Attr[AID.max] attrs;  // 255*4 = 1024 Bytes
 }
 
 // #  Format
@@ -200,8 +268,7 @@ Format {
 // 2  1 10 2 10 3 0  // Button
 // ...
 // 255
-// .Start
-// 211111
+// \2\1Start\0\0
 
 // Attributes
 enum AID : ubyte {

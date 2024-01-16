@@ -20,27 +20,27 @@ G {
     }
 
     void
-    line (XY a, XY b) {
+    line (XY a, XY b, C c) {
         if (a.y == b.y)
-            hline (a,b);
+            hline (a,b,c);
         else if (a.x == b.x)
-            vline (a,b);
+            vline (a,b,c);
         else
-            dline (a,b);
+            dline (a,b,c);
     }
 
     void
-    hline (XY a, XY b) {
+    hline (XY a, XY b, C c) {
         m.hline (a,b,c);
     }
 
     void
-    vline (XY a, XY b) {
+    vline (XY a, XY b, C c) {
         m.vline (a,b,c);
     }
 
     void
-    dline (XY a, XY b) {
+    dline (XY a, XY b, C c) {
         m.dline (a,b,c);
     }
 }
