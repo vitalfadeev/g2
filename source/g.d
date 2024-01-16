@@ -74,6 +74,8 @@ CMAP {
 
     void
     hline (XY a, XY b, C c) {
+        assert (a.y==b.y);
+
         auto _m     = m.ptr + a.y*w + a.x;
         auto  limit = _m + (b.x-a.x);
         auto _inc = (a.x < b.x) ? 1 : - 1;
@@ -84,6 +86,8 @@ CMAP {
 
     void
     vline (XY a, XY b, C c) {
+        assert (a.x==b.x);
+
         auto _w     = w;
         auto _m     = m.ptr + a.y*_w + a.x;
         auto  limit = _m + (b.y-a.y)*_w;
@@ -95,15 +99,67 @@ CMAP {
 
     void
     dline (XY a, XY b, C c) {
-        auto _w   = w;
-        auto  ba  = (b-a);
-        Fixed dxy = Fixed(ba.y)/ba.x;
-        int   y;
-        writeln (dxy);
+        auto ba = (b-a).abs;
 
-        for (auto x=a.x; x<b.x; x++) {
-            y = (dxy * x).to_int;
-            m[y*_w + x] = c;
+        if (ba.x >= ba.y) {
+            if (a.x<b.x)
+                dline_by_x (a, b, c);
+            else
+                dline_by_x_rev (a, b, c);
+        }
+        else
+            dline_by_y (a, b, c);
+    }
+
+    void
+    dline_by_x (XY a, XY b, C c) {
+        assert (a.x<=b.x);
+
+        auto _w = w;
+        auto ba = b-a;
+        auto x  = a.x;
+        auto limit = b.x;
+        auto y_inc = Fixed (ba.y,0) / ba.x;
+        auto y = Fixed (a.y,0);
+
+        for (; x!=limit; x++) {
+            y += y_inc;
+            m[y.to_int*_w + x] = c;
+        }
+    }
+
+    void
+    dline_by_x_rev (XY a, XY b, C c) {
+        assert (a.x>=b.x);
+
+        auto _w = w;
+        auto ba = b-a;
+        auto x  = a.x;
+        auto limit = b.x;
+        auto y_inc = Fixed (ba.y,0) / -ba.x;
+        auto y = Fixed (a.y,0);
+
+        for (; x!=limit; x--) {
+            y += y_inc;
+            m[y.to_int*_w + x] = c;
+        }
+    }
+
+    void
+    dline_by_y (XY a, XY b, C c) {
+        assert (a.y<=b.y);
+
+        auto _w = w;
+        auto ba = b-a;
+        auto y  = a.y;
+        auto limit = b.y;
+        auto x_inc = Fixed (ba.x,0) / ba.y;
+        auto x = Fixed (a.x,0);
+        writeln (x_inc);
+
+        for (; y!=limit; y++) {
+            x += x_inc;
+            m[y*_w + x.to_int] = c;
         }
     }
 }
@@ -128,6 +184,11 @@ XY {
     opOpAssign (string op: "+") (XY b) {
         x += cast(short)b.x;
         y += cast(short)b.y;
+    }
+
+    XY
+    abs () {
+        return XY (cast(short)(x>=0?x:-x), cast(short)(y>=0?y:-y));
     }
 }
 

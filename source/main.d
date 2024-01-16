@@ -120,14 +120,16 @@ frame (SDL_Renderer* renderer) {
     // picture
     Pic pic_0;
 
+    // □
     Pic pic_1;
     pic_1.els ~= Pic.El( Pic.El.Type.CLOSED_LINE, [
         XY(0,0), XY(100,0), XY(100,100), XY(0,100),
     ]);
 
-    Pic pic_2;
+    // ◇
+    Pic pic_2; 
     pic_2.els ~= Pic.El( Pic.El.Type.CLOSED_LINE, [
-        XY(50,0), XY(100,50), XY(50,100), XY(50,0),
+        XY(50,0), XY(100,50), XY(50,100), XY(0,50),
     ]);
 
     // pictures table
