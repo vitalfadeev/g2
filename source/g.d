@@ -1,5 +1,11 @@
 module g;
 
+import fixed;
+import std.stdio : writeln;
+
+
+alias 
+Fixed = fixed.Fixed!16;
 
 struct
 G {
@@ -78,9 +84,10 @@ CMAP {
 
     void
     vline (XY a, XY b, C c) {
-        auto _m     = m.ptr + a.y*w + a.x;
-        auto  limit = _m + (b.y-a.y)*w;
-        auto _inc = (a.y < b.y) ? w : - w;
+        auto _w     = w;
+        auto _m     = m.ptr + a.y*_w + a.x;
+        auto  limit = _m + (b.y-a.y)*_w;
+        auto _inc = (a.y < b.y) ? _w : - _w;
 
         for (; _m!=limit; _m+=_inc)
             *_m = c;
@@ -88,12 +95,16 @@ CMAP {
 
     void
     dline (XY a, XY b, C c) {
-        //auto _m     = m.ptr + a.y*w + a.x;
-        //auto  limit = _m + (b.y-a.y)*w;
-        //auto _inc = (a.y < b.y) ? w : - w;
+        auto _w   = w;
+        auto  ba  = (b-a);
+        Fixed dxy = Fixed(ba.y)/ba.x;
+        int   y;
+        writeln (dxy);
 
-        //for (; _m!=limit; _m+=_inc)
-        //    *_m = c;
+        for (auto x=a.x; x<b.x; x++) {
+            y = (dxy * x).to_int;
+            m[y*_w + x] = c;
+        }
     }
 }
 
@@ -106,6 +117,11 @@ XY {
     XY
     opBinary (string op: "+") (XY b) {
         return XY (cast(short)(x+b.x), cast(short)(y+b.y));
+    }
+
+    XY
+    opBinary (string op: "-") (XY b) {
+        return XY (cast(short)(x-b.x), cast(short)(y-b.y));
     }
 
     void

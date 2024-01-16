@@ -5,7 +5,8 @@
 	"copyright"    : "Copyright © 2022, vital",
 	"license"      : "proprietary",
 	"dependencies" : {
-		"bindbc-sdl"   : "~>1.2.3"
+		"bindbc-sdl"   : "~>1.2.3",
+        "fixed"        : { "path":"deps/fixed"   , "version":"*" },
 	},
 	"versions"     : ["SDL_2022"],
 	"dflags"       : [ "-mixin=mixins.d" ],
