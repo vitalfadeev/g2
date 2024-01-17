@@ -212,7 +212,34 @@ XY {
     abs () {
         return XY (cast(short)(x>=0?x:-x), cast(short)(y>=0?y:-y));
     }
+
+    void
+    grow (XY b) {
+        if (b.x > x)
+            x = b.x;
+
+        if (b.y > y)
+            y = b.y;
+    }
+
+    void
+    grow_x (XY b) {
+        x += b.x;
+
+        if (b.y > y)
+            y = b.y;
+    }
 }
 
 alias
 Size = XY;
+
+alias
+Sizes = Size[];
+
+alias
+Base = XY;
+
+alias
+Bases = Base[];
+

@@ -45,52 +45,105 @@ PicG {
     alias g this;
 
     void
-    flow_2_stacked (ref Pics pics, ref Formats fmts, ref IDS ids, ref XY base, ref Sizes sizes) {
+    flow_2_stacked (ref Pics pics, ref Formats fmts, ref IDS ids, ref Base base, out Bases bases, out Sizes sizes) {
         import std.range;
 
+        PicID      id;
         Size       size;
-        PicID      preid;
         FormatID   fid;
+        size_t     i;
         Format     fmt;
         FormatID[] fstack;
+        // for format's borders
+        Base[]     bstack;
+        Size       csize;
+        Base       fbase;
+        Size       fsize;
 
+        auto ids_terator = ids;
         sizes.length = ids.length;
+        bases.length = ids.length;
 
-        foreach (i,id; ids) {
-            if (id=='\\') {     // control
-                preid = id;
-                continue;
-            } 
+        //
+        read_id: {
+            if (ids_terator.empty)
+                goto exit;
 
-            if (preid=='\\') {  // control
-                fid = id;
+            id = ids_terator.front;
+            ids_terator.popFront();
 
-                if (fid != 0) {    // in   : base += padding
-                    fstack ~= fid;
-                }
-                else {             // out
-                    fid = fstack.back ();  
-                    fstack.popBack ();  
-                }
-
-                fmt = fmts[fid];
+            if (id=='\\') {
+                i++;
+                goto read_control;
             }
-            else {              // ID
+            else {
                 auto pic = pics[id];
 
-                render_fmt (pic, base, fmt, size);
+                render (pic,base,size);
 
-                base.x  += size.x;
+                // for content's borders
+                render_content_borders (base,size,0xFF00FFFF);
+
+                // save base
+                // save size
+                bases[i] = base;
                 sizes[i] = size;
+
+                // step to right
+                base.x += size.x;
+
+                // all content size
+                csize.x += size.x;
+                if (size.y>csize.y)
+                    csize.y = size.y;
             }
 
-            //
-            preid = id;
+            i++;
+            goto read_id;
         }
+
+        read_control: {
+            if (ids_terator.empty)
+                goto exit;
+
+            id = ids_terator.front;
+            ids_terator.popFront();
+
+            if (id != 0) {    // in
+                // format id
+                fid = id;
+                fstack ~= fid;
+                fmt = fmts[fid];
+
+                // for format's borders
+                bstack ~= base;
+
+                //
+                format (fmt, base, size, fbase, fsize);
+                base  = fbase;
+                csize = csize.init;
+            }
+            else {            // out
+                fid = fstack.back;
+                fstack.popBack ();  
+                fmt = fmts[fid];
+
+                // for format's borders
+                format (fmt, base, csize, fbase, fsize);
+                fbase = bstack.back;
+                bstack.popBack ();
+                render_borders (fbase,fsize,0xFFFF00FF);
+            }
+
+            i++;
+            goto read_id;
+        }
+
+        exit:
     }
 
     void
-    flow (ref Pics pics, ref IDS ids, ref XY base, ref Sizes sizes) {
+    flow (ref Pics pics, ref IDS ids, ref Base base, ref Sizes sizes) {
         sizes.length = ids.length;
 
         foreach (i,id; ids) {
@@ -102,7 +155,7 @@ PicG {
     }
 
     void
-    flow_stacked (ref Pics pics, ref IDS ids, ref XY base, ref Sizes sizes) {
+    flow_stacked (ref Pics pics, ref IDS ids, ref Base base, ref Sizes sizes) {
         sizes.length = ids.length;
 
         foreach (i,id; ids) {
@@ -115,7 +168,7 @@ PicG {
     }
 
     void
-    render (ref Pic pic, ref XY base, out Size size) {
+    render (ref Pic pic, ref Base base, out Size size) {
         Size el_size;
 
         foreach (el; pic.els) {
@@ -132,28 +185,6 @@ PicG {
             if (el_size.y > size.y)
                 size.y = el_size.y;
         }
-    }
-
-    void
-    render_fmt (ref Pic pic, ref XY base, ref Format fmt, out Size size) {
-        Size el_size;
-        auto pt = fmt.attrs[AID.PADDING_TOP];
-        auto pr = fmt.attrs[AID.PADDING_RIGHT];
-        auto pb = fmt.attrs[AID.PADDING_BOTTOM];
-        auto pl = fmt.attrs[AID.PADDING_LEFT];
-
-        auto pbase = 
-            base + 
-            XY (cast(short)pl,cast(short)pt);
-
-        render (pic, pbase, size);
-
-        auto psize = 
-            size + 
-            XY (cast(short)pl,cast(short)pt) + 
-            XY (cast(short)pr,cast(short)pb);
-        render_borders (base,psize,0xFFFF00FF);
-        render_content_borders (pbase,size,0xFF00FFFF);
     }
 
     void
@@ -239,6 +270,23 @@ PicG {
 
         size.x = maxx;
         size.y = maxy;
+    }
+
+    void
+    format (ref Format fmt, ref Base base, ref Size size, out Base fbase, out Size fsize) {
+        auto pt = fmt.attrs[AID.PADDING_TOP];
+        auto pr = fmt.attrs[AID.PADDING_RIGHT];
+        auto pb = fmt.attrs[AID.PADDING_BOTTOM];
+        auto pl = fmt.attrs[AID.PADDING_LEFT];
+
+        fbase = 
+            base + 
+            XY (cast(short)pl,cast(short)pt);
+
+        fsize = 
+            size + 
+            XY (cast(short)pl,cast(short)pt) + 
+            XY (cast(short)pr,cast(short)pb);
     }
 }
 

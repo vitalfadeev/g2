@@ -158,12 +158,12 @@ frame (SDL_Renderer* renderer) {
     ids ~= 1;
     ids ~= 1;
     ids ~= 2;
-    ids ~= 3;
     ids ~= '\\';  // control
     ids ~= 2;     // fmt 2
+    ids ~= 3;
     ids ~= 4;
-    //ids ~= '\\';  // control
-    //ids ~= 0;     // out fmt
+    ids ~= '\\';  // control
+    ids ~= 0;     // out fmt
 
     // Format ids
     FIDS fids;
@@ -214,6 +214,7 @@ frame (SDL_Renderer* renderer) {
     g.m.w = rect.w;
     g.c   = 0xFFFFFFFF;
     XY      base;
+    Bases   bases;
     Sizes   sizes;
 
     // RENDER
@@ -225,7 +226,7 @@ frame (SDL_Renderer* renderer) {
 
     // change pixels
     //g.flow_stacked (pics,ids,base,sizes);
-    g.flow_2_stacked (pics,fmts,ids,base,sizes);
+    g.flow_2_stacked (pics,fmts,ids,base,bases,sizes);
 
     // set pixels    
     for (auto i=0; i<rect.w*rect.h; i++)
