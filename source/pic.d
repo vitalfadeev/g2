@@ -61,8 +61,8 @@ PicG {
         Size       fsize;
 
         auto ids_iterator = ids;
-        sizes.length = ids.length;
-        bases.length = ids.length;
+        sizes.length = ids_iterator.length;
+        bases.length = ids_iterator.length;
 
         //
         read_id: {
