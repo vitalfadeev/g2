@@ -60,17 +60,17 @@ PicG {
         Base       fbase;
         Size       fsize;
 
-        auto ids_terator = ids;
+        auto ids_iterator = ids;
         sizes.length = ids.length;
         bases.length = ids.length;
 
         //
         read_id: {
-            if (ids_terator.empty)
+            if (ids_iterator.empty)
                 goto exit;
 
-            id = ids_terator.front;
-            ids_terator.popFront();
+            id = ids_iterator.front;
+            ids_iterator.popFront();
 
             if (id=='\\') {
                 i++;
@@ -103,11 +103,11 @@ PicG {
         }
 
         read_control: {
-            if (ids_terator.empty)
+            if (ids_iterator.empty)
                 goto exit;
 
-            id = ids_terator.front;
-            ids_terator.popFront();
+            id = ids_iterator.front;
+            ids_iterator.popFront();
 
             if (id != 0) {    // in
                 // format id
@@ -140,6 +140,7 @@ PicG {
         }
 
         exit:
+            //
     }
 
     void

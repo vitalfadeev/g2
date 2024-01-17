@@ -159,7 +159,6 @@ CMAP {
         auto limit = b.y;
         auto x_inc = Fixed (ba.x,0) / ba.y;
         auto x = Fixed (a.x,0);
-        writeln (x_inc);
 
         for (; y!=limit; y++) {
             x += x_inc;
@@ -177,7 +176,6 @@ CMAP {
         auto limit = b.y;
         auto x_inc = Fixed (ba.x,0) / -ba.y;
         auto x = Fixed (a.x,0);
-        writeln (x_inc);
 
         for (; y!=limit; y--) {
             x += x_inc;
