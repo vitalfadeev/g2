@@ -1,7 +1,8 @@
 module g;
 
-import fixed;
 import std.stdio : writeln;
+import fixed;
+import bitmap_font;
 
 
 alias 
@@ -70,6 +71,11 @@ CMAP {
     void
     point (XY a, C c) {
         m[a.y*w + a.x] = c;
+    }
+
+    void
+    point (short x, short y, C c) {
+        m[y*w + x] = c;
     }
 
     void
@@ -182,6 +188,22 @@ CMAP {
             m[y*_w + x.to_int] = c;
         }
     }
+
+    void
+    bitpic (ref Base base, ref BitPic bitpic, Size size, C c) {
+        auto x = base.x;
+        auto y = base.y;
+        foreach (b; bitpic.m) {
+            if (b & 0b0000_0001) { point (x,y,c); x++; }
+            if (b & 0b0000_0010) { point (x,y,c); x++; }
+            if (b & 0b0000_0100) { point (x,y,c); x++; }
+            if (b & 0b0000_1000) { point (x,y,c); x++; }
+            if (b & 0b0001_0000) { point (x,y,c); x++; }
+            if (b & 0b0010_0000) { point (x,y,c); x++; }
+            if (b & 0b0100_0000) { point (x,y,c); x++; }
+            if (b & 0b1000_0000) { point (x,y,c); x++; }
+        }
+    }
 }
 
 
@@ -240,4 +262,3 @@ Base = XY;
 
 alias
 Bases = Base[];
-
