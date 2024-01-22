@@ -249,12 +249,11 @@ PicG {
             preblock.size.x += size.x;
             if (preblock.size.y<size.y) preblock.size.y = size.y;
 
-            base.x += fmt.padding_right;
+            //base.x += fmt.padding_right;
             //base.y -= fmt.padding_top;
-
-            //base.x  = block.base.x;
-            //base.x += block.size.x;
-            base.y  = block.base.y;
+            // same as:
+            base    = block.base;
+            base.x += size.x;
 
             bid = block.prebid;
         }

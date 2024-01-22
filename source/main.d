@@ -177,18 +177,40 @@ frame (SDL_Renderer* renderer) {
     //ids ~= 2;     //  ◇
     //ids ~= ')';   // )
 
+    //IDS ids;
+    //ids ~= '(';   // (
+    //ids ~= 2;     //  format
+    //ids ~= ' ';   //  
+    //ids ~= 1;     //  □
+    //ids ~= '(';   //  (
+    //ids ~= 2;     //    format
+    //ids ~= ' ';   //    
+    //ids ~= 1;     //    □
+    //ids ~= ')';   //  )
+    //ids ~= 1;     //  □
+    //ids ~= 2;     //  ◇
+    //ids ~= ')';   // )
+
     IDS ids;
     ids ~= '(';   // (
     ids ~= 2;     //  format
     ids ~= ' ';   //  
     ids ~= 1;     //  □
+
     ids ~= '(';   //  (
     ids ~= 2;     //    format
     ids ~= ' ';   //    
     ids ~= 1;     //    □
+
+    ids ~= '(';   //    (
+    ids ~= 2;     //      format
+    ids ~= ' ';   //    
+    ids ~= 1;     //      □
+    ids ~= ')';   //    )
+    ids ~= 1;     //    □
+
     ids ~= ')';   //  )
     ids ~= 1;     //  □
-    ids ~= 2;     //  ◇
     ids ~= ')';   // )
 
     // Format ids
