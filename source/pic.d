@@ -177,125 +177,112 @@ PicG {
         //   (1 Start)
         //   (2 (1 Start))
         //   a  a       bb
-        blocks.length = ids.length;
-        size_t parent_block;
-        Size   size;   // one pic  size
-        Size   csize;  // all pics size. content size
+        BlockId bid;
+        // Zero block. Initial format
+        _go_in_format (blocks,bid,fmts,0,base);
 
         //
         foreach (token; TokenReader (IdReader (ids)))
             final switch (token.type) {
-                case TokenReader.Token.Type.A  : render_block_start (pics,fmts,base,token,blocks,parent_block); break;
-                case TokenReader.Token.Type.ID : render_id (pics,fmts,base,size,token,blocks,parent_block); csize.x+=size.x; if (csize.y<size.y) csize.y=size.y; break;
-                case TokenReader.Token.Type.B  : render_block_end (pics,fmts,base,token,blocks,parent_block,csize); break;
+                case TokenReader.Token.Type.A  : 
+                    go_in_format (blocks,bid,fmts,token,base); 
+                    break;
+                case TokenReader.Token.Type.ID : 
+                    render_pic (pics,blocks,bid,token,base); 
+                    break;
+                case TokenReader.Token.Type.B  : 
+                    go_out_format (blocks,bid,fmts,base);
+                    break;
             }
     }
 
     void
-    render_block_start (ref Pics pics, ref Formats fmts, ref Base base, ref TokenReader.Token token, ref Blocks blocks, ref size_t parent_block) {
-        // save base
-        // base + padding
-        // new block will parent
-        auto fid = token.fid;
-        auto fmt = fmts[fid];
-        auto i   = token.i;
-        Base cbase;
-        content_base (fmt,base,cbase);
-        save_block (blocks,i,base,fid,parent_block,cbase);
-        set_new_parent (parent_block,i);
-        set_new_base (base,cbase);
-    }
-
-
-    void
-    render_id (ref Pics pics, ref Formats fmts, ref Base base, ref Size size, TokenReader.Token token, ref Blocks blocks, size_t parent_block) {
-        auto i   = token.i;
-        auto pic = pics[token.id];
-        auto fid = token.fid;
-
-        render (pic,base,size);
-        render_content_borders (base,size,0xFF00FFFF);
-
-        next_base (base,size);
-        save_block_c (blocks,i,base,size,fid,parent_block);
+    go_in_format (ref Blocks blocks, ref BlockId bid, ref Formats fmts, ref TokenReader.Token token, ref Base base) {
+        _go_in_format (blocks,bid,fmts,token.fid,base);
     }
 
     void
-    render_content_borders (XY base, Size size, C c) {
-        auto el = Pic.El (Pic.El.Type.CLOSED_LINE, [
-            XY(), XY(size.x,0), size, XY(0,size.y) ]);
-        Size el_size;
-        render_closed_line (base, el, c, el_size);
+    _go_in_format (ref Blocks blocks, ref BlockId bid, ref Formats fmts, FormatID fid, ref Base base) {
+        auto fmt = fid in fmts;
+
+        Block block;
+        block.fid    = fid;
+        block.base   = base;
+        block.prebid = bid;
+
+        blocks ~= block;
+        bid = blocks.length - 1;
+
+        base += Base (fmt.padding_left,fmt.padding_top);
     }
 
     void
-    next_base (ref Base base, ref Size size) {
+    render_pic (ref Pics pics, ref Blocks blocks, ref BlockId bid, ref TokenReader.Token token, ref Base base) {
+        Size size;
+
+        auto block = bid in blocks;
+
+        render (pics[token.id],base,size);
+
         base.x += size.x;
+
+        block.size.x += size.x;
+        if (block.size.y<size.y) block.size.y = size.y;
     }
 
     void
-    content_base (ref Format fmt, ref Base base, ref Base cbase) {
-        cbase = base + XY (fmt.padding_left,fmt.padding_top);
-    }
+    go_out_format (ref Blocks blocks, ref BlockId bid, ref Formats fmts, ref Base base) {
+        auto block = bid in blocks;
+        auto fmt   = block.fid in fmts;
+        auto size =
+            Size (fmt.padding_left,fmt.padding_top) +
+            block.size +
+            Size (fmt.padding_right,fmt.padding_bottom);
 
-    void
-    set_new_parent (ref size_t parent_block, size_t i) {
-        parent_block = i;
-    }
+        render_block_borders (block.base,size,0xFF0000FF);
 
-    void
-    set_new_base (ref Base base, ref Base cbase) {
-        base = cbase;
-    }
+        if (bid == 0) {
+            // 
+        }
+        else {
+            auto preblock = block.prebid in blocks;
+            preblock.size.x += size.x;
+            if (preblock.size.y<size.y) preblock.size.y = size.y;
 
-    void
-    save_block (ref Blocks blocks, size_t i, Base base, FormatID fid, size_t parent_block, Base cbase) {
-        blocks[i] = Block (base,Size(),fid,parent_block,cbase);
-    }
+            base.x += fmt.padding_right;
+            //base.y -= fmt.padding_top;
 
-    void
-    save_block_c (ref Blocks blocks, size_t i, Base base, Size size, FormatID fid, size_t parent_block) {
-        blocks[i] = Block (base,size,fid,parent_block);
-    }
+            //base.x  = block.base.x;
+            //base.x += block.size.x;
+            base.y  = block.base.y;
 
-
-    void
-    render_block_end (ref Pics pics, ref Formats fmts, ref Base base, TokenReader.Token token, ref Blocks blocks, ref size_t parent_block, ref Size csize) {
-        auto block = blocks[parent_block];
-        update_block_size (fmts,block,csize);
-        render_block_borders (block.base,block.size,0xFFFF00FF);
-        restore_parent (block,parent_block);
-    }
-
-    void
-    update_block_size (ref Formats fmts, ref Block block, ref Size csize) {
-        auto fmt    = fmts[block.fid];
-        block.size  = 
-            XY (fmt.padding_left,fmt.padding_top) + 
-            csize + 
-            XY (fmt.padding_right,fmt.padding_bottom);
-        block.csize = csize;
-    }
-
-    void
-    restore_parent (ref Block block, ref size_t parent_block) {
-        parent_block = block.parent_block;
+            bid = block.prebid;
+        }
     }
 
 
     struct
     Block {
-        Base     base;
-        Size     size;
         FormatID fid;
-        size_t   parent_block;
-        Base     cbase;  // content base
-        Size     csize;  // content size
+        Base     base;
+        Base     size;
+        BlockId  prebid;
     }
 
 
-    alias
-    Blocks = Block[];
+    struct
+    Blocks {
+        Block[] _super;
+        alias _super this;
+
+        Block* 
+        opBinaryRight (string op : "in")(BlockId i) {
+            return &_super[i];
+        }
+    }
+
+    alias 
+    BlockId = size_t;
 
 /*
     struct
@@ -447,12 +434,13 @@ PicG {
     }
 
     void
-    render_block_borders (Base base, Size size, C c) {
+    render_block_borders (ref Base base, ref Size size, C c) {
         auto el = Pic.El (Pic.El.Type.CLOSED_LINE, [
             XY(), XY(size.x,0), size, XY(0,size.y) ]);
         Size el_size;
         render_closed_line (base, el, c, el_size);
     }
+
 
     void
     render_points (ref Pic pic, ref Base base, ref Pic.El el, out Size size) {
@@ -542,8 +530,16 @@ PicG {
 }
 
 
-alias
-Formats = Format[];
+struct
+Formats {
+    Format[] _super;
+    alias _super this;
+
+    Format* 
+    opBinaryRight (string op : "in")(FormatID i) {
+        return &_super[i];
+    }
+}
 
 alias
 FormatID = size_t;
