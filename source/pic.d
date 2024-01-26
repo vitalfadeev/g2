@@ -2,6 +2,7 @@ module pic;
 
 import std.stdio : writeln;
 import std.range;
+import std.typecons : Tuple, tuple;
 
 //import g;
 public import g;
@@ -30,8 +31,16 @@ Pic {
 }
 
 
-alias
-Pics = Pic[];
+struct
+Pics {
+    Pic[] _super;
+    alias _super this;
+
+    Pic* 
+    opBinaryRight (string op : "in")(PicID i) {
+        return &_super[i];
+    }
+}
 
 alias 
 IDS = PicID[];
@@ -185,10 +194,10 @@ PicG {
         foreach (token; TokenReader (IdReader (ids)))
             final switch (token.type) {
                 case TokenReader.Token.Type.A  : 
-                    go_in_format (blocks,bid,fmts,token,base); 
+                    go_in_format (blocks,bid,fmts,token,base);
                     break;
                 case TokenReader.Token.Type.ID : 
-                    render_pic (pics,blocks,bid,token,base); 
+                    render_pic (pics,blocks,bid,token,base);
                     break;
                 case TokenReader.Token.Type.B  : 
                     go_out_format (blocks,bid,fmts,base);
@@ -205,13 +214,14 @@ PicG {
     _go_in_format (ref Blocks blocks, ref BlockId bid, ref Formats fmts, FormatID fid, ref Base base) {
         auto fmt = fid in fmts;
 
-        Block block;
+        auto prebid = bid;
+
+        bid = blocks.new_one ();
+        auto block = bid in blocks;
+
         block.fid    = fid;
         block.base   = base;
-        block.prebid = bid;
-
-        blocks ~= block;
-        bid = blocks.length - 1;
+        block.prebid = prebid;
 
         base += Base (fmt.padding_left,fmt.padding_top);
     }
@@ -221,8 +231,9 @@ PicG {
         Size size;
 
         auto block = bid in blocks;
+        auto pic = token.id in pics;
 
-        render (pics[token.id],base,size);
+        render (*pic,base,size);
 
         base.x += size.x;
 
@@ -249,9 +260,6 @@ PicG {
             preblock.size.x += size.x;
             if (preblock.size.y<size.y) preblock.size.y = size.y;
 
-            //base.x += fmt.padding_right;
-            //base.y -= fmt.padding_top;
-            // same as:
             base    = block.base;
             base.x += size.x;
 
@@ -277,6 +285,12 @@ PicG {
         Block* 
         opBinaryRight (string op : "in")(BlockId i) {
             return &_super[i];
+        }
+
+        BlockId
+        new_one () {
+            _super.length++;
+            return _super.length - 1;
         }
     }
 

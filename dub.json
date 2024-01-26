@@ -3,7 +3,7 @@
 	"description"  : "A minimal D application.",
 	"authors"      : [ "vital" ],
 	"copyright"    : "Copyright © 2022, vital",
-	"license"      : "proprietary",
+	"license"      : "GPL3",
 	"dependencies" : {
 		"bindbc-sdl"   : "~>1.2.3",
         "fixed"        : { "path":"deps/fixed"   , "version":"*" },
